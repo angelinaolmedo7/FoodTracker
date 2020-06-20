@@ -126,7 +126,6 @@ class MealTableViewController: UITableViewController {
             fatalError("Unexpected Segue Identifier; \(segue.identifier ?? "ERROR")")
         }
     }
-
     
     //MARK: Actions
     
