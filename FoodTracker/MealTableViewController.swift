@@ -21,8 +21,14 @@ class MealTableViewController: UITableViewController {
         // Use the edit button item provided by the table view controller.
         navigationItem.leftBarButtonItem = editButtonItem
 
-        // Load the sample data.
-        loadSampleMeals()
+        // Load any saved meals, otherwise load sample data.
+        if let savedMeals = loadMeals() {
+            meals += savedMeals
+        }
+        else {
+            // Load the sample data.
+            loadSampleMeals()
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -71,6 +77,7 @@ class MealTableViewController: UITableViewController {
         if editingStyle == .delete {
             // Delete the row from the data source
             meals.remove(at: indexPath.row)
+            saveMeals()
             tableView.deleteRows(at: [indexPath], with: .fade)
         } else if editingStyle == .insert {
             // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
@@ -144,6 +151,8 @@ class MealTableViewController: UITableViewController {
                 meals.append(meal)
                 tableView.insertRows(at: [newIndexPath], with: .automatic)
             }
+            // Save the meals.
+            saveMeals()
         }
     }
     
@@ -168,6 +177,32 @@ class MealTableViewController: UITableViewController {
         }
 
         meals += [meal1, meal2, meal3]
+    }
+    
+    private func saveMeals() {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(meals) {
+            do {
+                try encoded.write(to: URL(fileURLWithPath: Meal.ArchiveURL.path))
+            }
+            catch {
+                print("Could not save to file.")
+            }
+        }
+    }
+    
+    private func loadMeals() -> [Meal]?  {
+        do {
+            let savedData = try Data.init(contentsOf: URL(fileURLWithPath: Meal.ArchiveURL.path))
+            let decoder = JSONDecoder()
+            if let decoded = try? decoder.decode([Meal].self, from: savedData) {
+                return decoded
+            }
+        }
+        catch {
+            print("Could not retrieve data from file.")
+        }
+        return nil
     }
 
 }
